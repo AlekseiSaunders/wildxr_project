@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium. webdriver.support import expected_conditions as EC
 from page_objects.authentication.login_page import LoginPage
 from utilities.screenshot_manager import ScreenshotManager
+from utilities.test_status import TestResults
 from utilities.utils import logger
 
 
@@ -40,9 +41,14 @@ class TestLogin:
         
         lp = LoginPage(driver)
         lp.login(ADMIN_USER, ADMIN_PASS)
+        tr = TestResults(driver)
         time.sleep(2)
         login_succeeds = lp.verify_login_success()
-        assert login_succeeds, "Login Failed which was not expected"
+        tr.mark(login_succeeds, "Login Succeeded", "Login Failed")
+        # assert login_succeeds == True, "Login Failed which was not expected"
+        find_login_link = lp.find_login_link()
+        tr.mark_final("test_valid_login", find_login_link, "Login Link found successfully.", "Login Link not found")
+        
         
     @pytest.mark.run(order=0)
     @pytest.mark.fails
@@ -54,7 +60,7 @@ class TestLogin:
         lp = LoginPage(driver)
         lp.login()
         login_fails = lp.verify_both_missing()
-        assert login_fails, "Login Succeed which was not expected"
+        assert login_fails == True, "Login Succeed which was not expected"
         
     @pytest.mark.run(order=2)
     @pytest.mark.fails
@@ -66,7 +72,7 @@ class TestLogin:
         lp = LoginPage(driver)
         lp.login("", FAKE_PASS)
         login_fails = lp.verify_user_missing()
-        assert login_fails, "Login Succeed which was not expected"
+        assert login_fails  == True, "Login Succeed which was not expected"
         
     @pytest.mark.run(order=3)
     @pytest.mark.fails
@@ -78,7 +84,7 @@ class TestLogin:
         lp = LoginPage(driver)
         lp.login(FAKE_USER, "")
         login_fails = lp.verify_password_missing()
-        assert login_fails, "Login Succeed which was not expected"
+        assert login_fails == True, "Login Succeed which was not expected"
         
     @pytest.mark.run(order=4)
     @pytest.mark.fails
@@ -90,7 +96,7 @@ class TestLogin:
         lp = LoginPage(driver)
         lp.login(FAKE_USER_SHORT, FAKE_PASS)
         login_fails = lp.verify_user_short()
-        assert login_fails, "Login Succeed which was not expected"
+        assert login_fails == True, "Login Succeed which was not expected"
         
     @pytest.mark.run(order=5)
     @pytest.mark.fails
@@ -102,8 +108,7 @@ class TestLogin:
         lp = LoginPage(driver)
         lp.login(FAKE_USER, FAKE_PASS_SHORT)
         login_fails = lp.verify_pass_short()
-        assert login_fails, "Login Succeed which was not expected"     
+        assert login_fails == True, "Login Succeed which was not expected"     
         
 if __name__ == "__main__":
-    TL = TestLogin()
-    TL.test_valid_login()
+    pytest.main([__file__])
